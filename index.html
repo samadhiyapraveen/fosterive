@@ -911,24 +911,31 @@
 
     <div class="contact-form reveal reveal-d2">
       <h3>Start a <em>conversation</em></h3>
-      <div class="form-row">
-        <div class="fg"><label>First Name</label><input type="text" placeholder="Your name"/></div>
-        <div class="fg"><label>Company</label><input type="text" placeholder="Your company"/></div>
-      </div>
-      <div class="fg"><label>Email Address</label><input type="email" placeholder="you@company.com"/></div>
-      <div class="fg">
-        <label>Area of Interest</label>
-        <select>
-          <option value="">Select domain</option>
-          <option>Semiconductor Solutions</option>
-          <option>Data Science &amp; Analytics</option>
-          <option>AI &amp; Machine Learning</option>
-          <option>Embedded Engineering</option>
-          <option>Multiple Domains</option>
-        </select>
-      </div>
-      <div class="fg"><label>Your Requirement</label><textarea placeholder="Tell us what you are building and how we can help..."></textarea></div>
-      <button class="form-submit">Send Message →</button>
+      <form id="contactForm" action="https://api.web3forms.com/submit" method="POST">
+        <input type="hidden" name="access_key" value="da69a59a-d012-4da1-aa0e-3b5dbb6c8ca3"/>
+        <input type="hidden" name="subject" value="New Enquiry — FosterIve Systems Website"/>
+        <input type="hidden" name="from_name" value="FosterIve Website"/>
+        <input type="hidden" name="redirect" value="false"/>
+        <div class="form-row">
+          <div class="fg"><label>First Name</label><input type="text" name="name" placeholder="Your name" required/></div>
+          <div class="fg"><label>Company</label><input type="text" name="company" placeholder="Your company"/></div>
+        </div>
+        <div class="fg"><label>Email Address</label><input type="email" name="email" placeholder="you@company.com" required/></div>
+        <div class="fg">
+          <label>Area of Interest</label>
+          <select name="interest">
+            <option value="">Select domain</option>
+            <option>Semiconductor Solutions</option>
+            <option>Data Science &amp; Analytics</option>
+            <option>AI &amp; Machine Learning</option>
+            <option>Embedded Engineering</option>
+            <option>Multiple Domains</option>
+          </select>
+        </div>
+        <div class="fg"><label>Your Requirement</label><textarea name="message" placeholder="Tell us what you are building and how we can help..." required></textarea></div>
+        <button type="submit" class="form-submit" id="submitBtn">Send Message →</button>
+        <div id="formMsg" style="display:none;margin-top:1rem;padding:0.9rem 1rem;border-radius:3px;font-size:0.85rem;font-weight:500;"></div>
+      </form>
     </div>
   </div>
 </section>
@@ -983,13 +990,41 @@
   }, { threshold: 0.1 });
   document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
 
-  // ── Form submit (basic feedback)
-  document.querySelector('.form-submit').addEventListener('click', function() {
-    const email = document.querySelector('input[type="email"]').value;
-    if (!email) { alert('Please enter your email address.'); return; }
-    this.textContent = 'Message Sent ✓';
-    this.style.background = '#2a6f3f';
-    this.disabled = true;
+  // ── Web3Forms submission
+  const form = document.getElementById('contactForm');
+  const btn  = document.getElementById('submitBtn');
+  const msg  = document.getElementById('formMsg');
+
+  form.addEventListener('submit', async function(e) {
+    e.preventDefault();
+    btn.textContent = 'Sending...';
+    btn.disabled = true;
+
+    const data = new FormData(form);
+    try {
+      const res  = await fetch('https://api.web3forms.com/submit', { method:'POST', body: data });
+      const json = await res.json();
+      if (json.success) {
+        msg.style.display = 'block';
+        msg.style.background = 'rgba(46,160,90,0.15)';
+        msg.style.border = '1px solid rgba(46,160,90,0.4)';
+        msg.style.color = '#6fcf97';
+        msg.textContent = '✓ Message sent! We will get back to you within 24 hours.';
+        btn.textContent = 'Message Sent ✓';
+        btn.style.background = '#2a6f3f';
+        form.reset();
+      } else {
+        throw new Error('Failed');
+      }
+    } catch(err) {
+      msg.style.display = 'block';
+      msg.style.background = 'rgba(200,80,60,0.15)';
+      msg.style.border = '1px solid rgba(200,80,60,0.4)';
+      msg.style.color = '#e07060';
+      msg.textContent = '✗ Something went wrong. Please email us directly at business@fosterive.com';
+      btn.textContent = 'Send Message →';
+      btn.disabled = false;
+    }
   });
 </script>
 </body>
